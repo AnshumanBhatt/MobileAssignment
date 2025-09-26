@@ -13,13 +13,25 @@ struct DevicesList: View {
 
     var body: some View {
         List(devices) { device in
-            Button {
-                onSelect(device)
-            } label: {
-                VStack(alignment: .leading) {
+            NavigationLink(value: device) {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(device.name)
+                        .font(.title2)
+                    
+                    if let color = device.data?.color {
+                        Text(color)
+                            .font(.headline)
+                    }
+                    if let capacity = device.data?.capacity {
+                        Text(capacity)
+                            .font(.headline)
+                    }
+                    
                     AssignmentText(text: device.name)
+                  
                 }
             }
+            
         }
     }
 }

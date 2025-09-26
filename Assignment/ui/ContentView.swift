@@ -8,35 +8,36 @@
 import SwiftUI
 
 struct ContentView: View {
-    private var viewModel = ContentViewModel()
+    @StateObject private var viewModel = ContentViewModel()
     @State private var path: [DeviceData] = [] // Navigation path
 
     var body: some View {
         NavigationStack(path: $path) {
             Group {
-                if let computers = viewModel.data, !computers.isEmpty {
-                    DevicesList(devices: computers) { selectedComputer in
+                if !viewModel.data!.isEmpty {
+                    DevicesList(devices: viewModel.data!) { selectedComputer in
                         viewModel.navigateToDetail(navigateDetail: selectedComputer)
                     }
-                } else {
-                    ProgressView("Loading...")
+                } else  {
+                     if viewModel.searchText.isEmpty {
+                        ProgressView("Loading...")
+                    } else {
+                        ContentUnavailableView("No results," , systemImage: "magnifyingglass")
+                    }
                 }
             }
-            .onChange(of: viewModel.navigateDetail, {
-                let navigate = viewModel.navigateDetail
-                path.append(navigate!)
-            })
+            .onChange(of: viewModel.navigateDetail) { value in
+                if let navigate = value {
+                    path.append(navigate)
+                }
+            }
             .navigationTitle("Devices")
             .navigationDestination(for: DeviceData.self) { computer in
                 DetailView(device: computer)
             }
+            .searchable(text: $viewModel.searchText, prompt: "Search")
             .onAppear {
-                let navigate = viewModel.navigateDetail
-                if (navigate != nil) {
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                        path.append(navigate!)
-                    }
-                }
+                viewModel.fetchAPI()
             }
         }
     }

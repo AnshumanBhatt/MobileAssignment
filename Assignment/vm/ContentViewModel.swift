@@ -13,14 +13,29 @@ class ContentViewModel : ObservableObject {
     private let apiService = ApiService()
     @Published var navigateDetail: DeviceData? = nil
     @Published var data: [DeviceData]? = []
+    @Published var searchText:String = ""
 
     func fetchAPI() {
-        apiService.fetchDeviceDetails(completion: { item in
-            self.data = item
-        })
+        apiService.fetchDeviceDetails { item in
+            DispatchQueue.main.async {
+                self.data = item
+            }
+            
+        }
     }
     
     func navigateToDetail(navigateDetail: DeviceData) {
         self.navigateDetail = navigateDetail
+    }
+    
+    var filterData: [DeviceData]? {
+        if searchText.isEmpty {
+            return data
+        } else {
+            return data!.filter {  device in
+                device.name.localizedCaseInsensitiveContains(searchText) || (device.data?.description?.localizedCaseInsensitiveContains(searchText) ?? false) || (device.data?.color?.localizedCaseInsensitiveContains(searchText) ?? false)
+                
+            }
+        }
     }
 }
